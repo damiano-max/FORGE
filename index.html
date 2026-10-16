@@ -172,7 +172,7 @@ previewImg.addEventListener('touchstart',e=>{
 },{passive:false});
 previewImg.addEventListener('touchmove',e=>{
  if(!gesture)return;e.preventDefault();
- if(e.touches.length>=2){const a=e.touches[0],b=e.touches[1],mid=midpoint(a,b);if(gesture.mode!=='pinch'){gesture={mode:'pinch',startDistance:Math.max(1,distance(a,b)),baseScale:layout.scale,baseX:layout.x,baseY:layout.y,startMid:mid}}
+ if(e.touches.length>=2){const a=e.touches[0],b=e.touches[1],mid=midpoint(a,b);if(gesture.mode!=='pinch'){gesture={mode:'pinch',startDistance:Math.max(1,distance(a,b)),baseScale:layout.scale,baseX:layout.x,baseY:layout.y,startMid:mid}}}
  layout.scale=Math.max(.4,Math.min(2.2,gesture.baseScale*distance(a,b)/gesture.startDistance));
  layout.x=gesture.baseX+(mid.x-gesture.startMid.x)*(W/(previewImg.clientWidth||W));
  layout.y=gesture.baseY+(mid.y-gesture.startMid.y)*(W/(previewImg.clientWidth||W));
