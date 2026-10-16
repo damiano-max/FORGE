@@ -114,7 +114,7 @@ const elapsed=w.started?Math.max(0,Math.round((new Date(w.date||Date.now()).getT
 const duration=elapsed?Math.floor(elapsed/60)+'h '+String(elapsed%60).padStart(2,'0')+'m':'—';
 const muscleMap={'petto':'Petto','pettorali':'Petto','spalle':'Spalle','tricipiti':'Tricipiti','bicipiti':'Bicipiti','dorsali':'Dorso','dorso':'Dorso','quadricipiti':'Quadricipiti','gambe':'Gambe','glutei':'Glutei','addominali':'Core','core':'Core','femorali':'Femorali','polpacci':'Polpacci'};
 const muscleCounts={};
-done.forEach(e=>{const found=exercises.find(x=>x[0]===e.name);if(found)String(found[1]).split(/[,/]/).map(m=>muscleMap[m.trim().toLowerCase()]||m.trim()).filter(Boolean).forEach(m=>muscleCounts[m]=(muscleCounts[m]||0)+e.sets.length)});
+done.forEach(e=>{const found=exercises.find(x=>x[0]===e.name);if(found)String(found[1]).split(/[ ,\x2f]/).map(m=>muscleMap[m.trim().toLowerCase()]||m.trim()).filter(Boolean).forEach(m=>muscleCounts[m]=(muscleCounts[m]||0)+e.sets.length)});
 const focus=Object.entries(muscleCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
 let selectedTemplate='performance';
 const overlay=document.createElement('div');overlay.className='cardPreviewOverlay';
