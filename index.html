@@ -140,10 +140,10 @@ const shade=ctx.createLinearGradient(0,0,0,H);shade.addColorStop(0,'rgba(0,0,0,.
 const pad=76;function text(t,x,y,font,color='rgba(255,255,255,.97)'){ctx.font=font;ctx.fillStyle=color;ctx.textAlign='left';ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=5;ctx.fillText(String(t),x,y);ctx.shadowBlur=0}function rule(y){ctx.strokeStyle='rgba(255,255,255,.28)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke()}
 const date=new Date(w.date||Date.now()).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase().replace('.','');
 text('FORGE',pad,100,'800 40px Arial');text(date,pad,155,'500 22px Arial','rgba(255,255,255,.82)');
-text((w.name||'ALLENAMENTO').toUpperCase().slice(0,22),pad,260,'800 62px Arial');
+
 if(template==='performance'){
 const metrics=[['DURATA',duration],['VOLUME',Math.round(volume).toLocaleString('it-IT')+' kg'],['SERIE',totalSets]];
-metrics.forEach((m,i)=>{const x=pad,y=450+i*190;text(m[0],x,y,'500 25px Arial','rgba(255,255,255,.86)');text(m[1],x,y+72,'800 58px Arial');});
+metrics.forEach((m,i)=>{const x=pad,y=390+i*155;text(m[0],x,y,'600 23px "Avenir Next",-apple-system,sans-serif','rgba(255,255,255,.78)');text(m[1],x,y+65,'700 58px "Avenir Next",-apple-system,sans-serif');});
 }else if(template==='muscles'){
 text('MUSCOLI ALLENATI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
 if(!focus.length){text('Nessun dato disponibile',pad,510,'500 27px Arial')}else focus.slice(0,5).forEach((m,i)=>{const y=520+i*125;text(m[0],pad,y,'700 38px Arial');text(m[1]+' serie',pad,y+43,'500 22px Arial','rgba(255,255,255,.84)')});
