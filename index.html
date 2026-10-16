@@ -136,8 +136,8 @@ function renderWorkoutTemplate(photo,template,data){
 const {w,W,H,done,totalSets,volume,duration,focus}=data;
 const layout={scale:1,x:0,y:0};
 const result=document.createElement('div');result.className='cardPreviewOverlay';
-result.innerHTML='<div class="cardPreviewTop"><span>CARD FORGE · '+(template==='performance'?'PERFORMANCE':template==='muscles'?'MUSCOLI':'ESERCIZI')+'</span><button aria-label="Chiudi">✕</button></div><p class="forgeEditHint">Trascina con un dito per spostare le statistiche · pizzica con due dita per ingrandirle o rimpicciolirle</p><img class="cardPreviewImage" alt="Card allenamento FORGE"><div class="cardPreviewActions"><button class="completionShare" id="forgeShareImage">↗ Condividi immagine</button><button class="completionHome" id="forgeSaveImage">↓ Salva immagine</button></div>';
-const editStyle=document.createElement('style');editStyle.textContent='.forgeEditHint{width:100%;max-width:440px;margin:0;color:rgba(255,255,255,.7);font-size:12px;line-height:1.35;text-align:center}.cardPreviewImage{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;cursor:grab}.cardPreviewImage:active{cursor:grabbing}.cardPreviewOverlay{gap:9px}.cardPreviewActions{margin-top:2px}';
+result.innerHTML='<div class="cardPreviewTop"><span>CARD FORGE · '+(template==='performance'?'PERFORMANCE':template==='muscles'?'MUSCOLI':'ESERCIZI')+'</span><button aria-label="Chiudi">✕</button></div><p class="forgeEditHint">Trascina con un dito per spostare le statistiche</p><img class="cardPreviewImage" alt="Card allenamento FORGE"><div class="cardPreviewActions"><button class="completionShare" id="forgeShareImage">↗ Condividi immagine</button><button class="completionHome" id="forgeSaveImage">↓ Salva immagine</button></div>';
+const editStyle=document.createElement('style');editStyle.textContent='.forgeEditHint{width:100%;max-width:440px;margin:0;color:rgba(255,255,255,.7);font-size:12px;line-height:1.35;text-align:center}.cardPreviewImage{touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;cursor:grab}.cardPreviewImage:active{cursor:grabbing}.cardPreviewOverlay{gap:9px}.cardPreviewActions{margin-top:2px}';
 result.appendChild(editStyle);document.body.appendChild(result);
 const previewImg=result.querySelector('.cardPreviewImage');
 let currentBlob=null,currentUrl=null,renderToken=0,gesture=null,renderPending=false;
@@ -165,28 +165,11 @@ const drawBlob=()=>new Promise(resolve=>{
  ctx.restore();text('F O R G E',pad,H-95,'600 20px Arial','#f3f4f6');canvas.toBlob(resolve,'image/png');
 });
 const refresh=async()=>{const token=++renderToken;const blob=await drawBlob();if(!blob||!result.isConnected||token!==renderToken)return;if(currentUrl)URL.revokeObjectURL(currentUrl);currentBlob=blob;currentUrl=URL.createObjectURL(blob);previewImg.src=currentUrl};
-const finishGesture=()=>{if(!gesture)return;gesture=null;if(renderPending){renderPending=false;refresh()}};
-previewImg.addEventListener('touchstart',e=>{
- if(e.touches.length===1){gesture={mode:'move',startX:e.touches[0].clientX,startY:e.touches[0].clientY,baseX:layout.x,baseY:layout.y};}
- else if(e.touches.length>=2){const a=e.touches[0],b=e.touches[1],mid=midpoint(a,b);gesture={mode:'pinch',startDistance:Math.max(1,distance(a,b)),baseScale:layout.scale,baseX:layout.x,baseY:layout.y,startMid:mid};}
-},{passive:false});
-previewImg.addEventListener('touchmove',e=>{
- if(!gesture)return;e.preventDefault();
- if(e.touches.length>=2){const a=e.touches[0],b=e.touches[1],mid=midpoint(a,b);if(gesture.mode!=='pinch'){gesture={mode:'pinch',startDistance:Math.max(1,distance(a,b)),baseScale:layout.scale,baseX:layout.x,baseY:layout.y,startMid:mid}}}
- layout.scale=Math.max(.4,Math.min(2.2,gesture.baseScale*distance(a,b)/gesture.startDistance));
- layout.x=gesture.baseX+(mid.x-gesture.startMid.x)*(W/(previewImg.clientWidth||W));
- layout.y=gesture.baseY+(mid.y-gesture.startMid.y)*(W/(previewImg.clientWidth||W));
- }else if(e.touches.length===1&&gesture.mode==='move'){
- layout.x=gesture.baseX+(e.touches[0].clientX-gesture.startX)*(W/(previewImg.clientWidth||W));
- layout.y=gesture.baseY+(e.touches[0].clientY-gesture.startY)*(W/(previewImg.clientWidth||W));
- }renderPending=true;
-},{passive:false});
-previewImg.addEventListener('touchend',e=>{if(e.touches.length===1){const t=e.touches[0];gesture={mode:'move',startX:t.clientX,startY:t.clientY,baseX:layout.x,baseY:layout.y};return}finishGesture()},{passive:true});
-previewImg.addEventListener('touchcancel',finishGesture,{passive:true});
-previewImg.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;gesture={mode:'move',startX:e.clientX,startY:e.clientY,baseX:layout.x,baseY:layout.y};try{previewImg.setPointerCapture(e.pointerId)}catch(_){}});
-previewImg.addEventListener('pointermove',e=>{if(!gesture||gesture.mode!=='move'||e.pointerType==='touch')return;layout.x=gesture.baseX+(e.clientX-gesture.startX)*(W/(previewImg.clientWidth||W));layout.y=gesture.baseY+(e.clientY-gesture.startY)*(W/(previewImg.clientWidth||W));renderPending=true});
-previewImg.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')finishGesture()});
-previewImg.addEventListener('pointercancel',finishGesture);
+let drag=null;
+previewImg.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;drag={x:e.clientX,y:e.clientY,baseX:layout.x,baseY:layout.y};try{previewImg.setPointerCapture(e.pointerId)}catch(_){}});
+previewImg.addEventListener('pointermove',e=>{if(!drag||e.pointerType==='touch')return;layout.x=drag.baseX+(e.clientX-drag.x)*(W/(previewImg.clientWidth||W));layout.y=drag.baseY+(e.clientY-drag.y)*(W/(previewImg.clientWidth||W));refresh()});
+previewImg.addEventListener('pointerup',()=>{drag=null});
+previewImg.addEventListener('pointercancel',()=>{drag=null});
 result.querySelector('.cardPreviewTop button').onclick=()=>{result.remove();if(currentUrl)URL.revokeObjectURL(currentUrl)};
 result.querySelector('#forgeShareImage').onclick=async()=>{try{if(!currentBlob)return;const file=new File([currentBlob],'forge-workout.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share)await navigator.share({files:[file],title:'Workout completato · FORGE',text:'Il mio allenamento su FORGE'});else downloadWorkoutCard(currentUrl)}catch(e){if(e.name!=='AbortError')toast('Condivisione non disponibile')}};
 result.querySelector('#forgeSaveImage').onclick=()=>{if(currentUrl)downloadWorkoutCard(currentUrl)};
