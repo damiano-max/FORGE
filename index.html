@@ -117,7 +117,24 @@ const muscleMap={'petto':'Petto','pettorali':'Petto','chest':'Petto','spalle':'S
 const normalizeExerciseName=name=>String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('it').replace(/[^a-z0-9]+/g,' ').trim();
 const muscleCounts={};
 const exerciseCatalog=[...exercises,...(typeof forgeImportedExercises!=='undefined'?forgeImportedExercises:[])];
-done.forEach(e=>{const normalizedName=normalizeExerciseName(e.name);const found=exerciseCatalog.find(x=>normalizeExerciseName(x[0])===normalizedName);let group=found?.[1]||e.muscleGroup||e.muscle||e.group||e.category||'';if(!group){const n=normalizedName;const rules=[[/\b(panca|chest|croci|pec deck|dip alle parallele)\b/,'Petto'],[/\b(curl|bicipit)\b/,'Bicipiti'],[/\b(tricipit|pushdown|french press)\b/,'Tricipiti'],[/\b(spalle|shoulder|alzate laterali|military press|arnold press)\b/,'Spalle'],[/\b(squat|leg press|affondi|affondo|hack squat|step up)\b/,'Gambe'],[/\b(hip thrust|glute)\b/,'Glutei'],[/\b(stacco rumeno|leg curl|femorali|hamstring)\b/,'Femorali'],[/\b(calf raise|polpacci)\b/,'Polpacci'],[/\b(crunch|addominali|plank|sit up|abdominal)\b/,'Core'],[/\b(lat machine|trazioni|rematore|pulley|dorso|back extension)\b/,'Dorso'],[/\b(air bike|cardio|burpee|battle ropes)\b/,'Cardio']];const rule=rules.find(([re])=>re.test(n));if(rule)group=rule[1]}if(group)String(group).split(/[ ,\x2f]/).map(m=>muscleMap[m.trim().toLowerCase()]||m.trim()).filter(Boolean).forEach(m=>muscleCounts[m]=(muscleCounts[m]||0)+e.sets.length)});
+const workoutExercises=Array.isArray(w.exercises)?w.exercises:[];
+workoutExercises.forEach(e=>{
+ const normalizedName=normalizeExerciseName(e.name);
+ const found=exerciseCatalog.find(x=>normalizeExerciseName(x[0])===normalizedName);
+ let group=found?.[1]||e.muscleGroup||e.muscle||e.group||e.category||'';
+ if(!group){
+  const n=normalizedName;
+  const rules=[[/panca|chest|croci|pec deck|dip/,'Petto'],[/curl|bicipit/,'Bicipiti'],[/tricipit|pushdown|french press/,'Tricipiti'],[/spalle|shoulder|alzate laterali|military press|arnold press/,'Spalle'],[/squat|leg press|affondi|affondo|hack squat|step up/,'Gambe'],[/hip thrust|glute/,'Glutei'],[/stacco rumeno|leg curl|femorali|hamstring/,'Femorali'],[/calf raise|polpacci/,'Polpacci'],[/crunch|addominali|plank|sit up|abdominal/,'Core'],[/lat machine|trazioni|rematore|pulley|dorso|back extension/,'Dorso'],[/air bike|cardio|burpee|battle ropes/,'Cardio']];
+  const rule=rules.find(([re])=>re.test(n)); if(rule)group=rule[1];
+ }
+ const key=muscleMap[String(group).trim().toLowerCase()]||String(group).trim();
+ if(key){
+  const sets=Array.isArray(e.sets)?e.sets:[];
+  const completed=sets.filter(s=>s&&s.done).length;
+  const count=completed||sets.length||1;
+  muscleCounts[key]=(muscleCounts[key]||0)+count;
+ }
+});
 const focus=Object.entries(muscleCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
 let selectedTemplate='performance';
 const overlay=document.createElement('div');overlay.className='cardPreviewOverlay';
