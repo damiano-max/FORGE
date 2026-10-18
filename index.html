@@ -165,7 +165,15 @@ const metrics=[['DURATA',duration],['VOLUME',Math.round(volume).toLocaleString('
 metrics.forEach((m,i)=>{const x=pad,y=390+i*155;text(m[0],x,y,'600 23px "Avenir Next",-apple-system,sans-serif','rgba(255,255,255,.78)');text(m[1],x,y+65,'700 58px "Avenir Next",-apple-system,sans-serif');});
 }else if(template==='muscles'){
 text('MUSCOLI ALLENATI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
-if(!focus.length){text('Nessun dato disponibile',pad,510,'500 27px Arial')}else focus.slice(0,5).forEach((m,i)=>{const y=520+i*125;text(m[0],pad,y,'700 38px Arial');text(m[1]+' serie',pad,y+43,'500 22px Arial','rgba(255,255,255,.84)')});
+if(!focus.length){text('Nessun dato disponibile',pad,510,'500 27px Arial')}else{
+const chartData=focus.slice(0,5),total=chartData.reduce((sum,m)=>sum+m[1],0);
+const colors=['#20D9FF','#3478F6','#8B5CF6','#FFB84D','#FF6482'];
+const cx=W*.34,cy=760,r=220;let angle=-Math.PI/2;
+chartData.forEach((m,i)=>{const next=angle+(m[1]/total)*Math.PI*2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,next);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.lineWidth=5;ctx.strokeStyle='rgba(255,255,255,.92)';ctx.stroke();angle=next;});
+const legendX=W*.61,legendY=585,lineH=112;
+chartData.forEach((m,i)=>{const y=legendY+i*lineH;ctx.beginPath();ctx.arc(legendX,y-10,9,0,Math.PI*2);ctx.fillStyle=colors[i%colors.length];ctx.fill();text(m[0].toUpperCase(),legendX+22,y,'700 22px Arial');text(m[1]+' serie · '+Math.round(m[1]/total*100)+'%',legendX+22,y+34,'500 20px Arial','rgba(255,255,255,.82)');});
+text('SERIE TOTALI',pad,1090,'600 21px Arial','rgba(255,255,255,.78)');text(total,pad,1150,'700 48px Arial');
+}
 }else{
 text('ESERCIZI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
 done.slice(0,8).forEach((e,i)=>{const y=510+i*130;text(e.name.slice(0,27),pad,y,'700 31px Arial');text(e.sets.length+' serie  ·  '+e.sets.reduce((n,s)=>n+(Number(s.reps)||0),0)+' ripetizioni',pad,y+42,'500 22px Arial','rgba(255,255,255,.84)')});
