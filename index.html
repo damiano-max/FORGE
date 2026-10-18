@@ -166,36 +166,45 @@ metrics.forEach((m,i)=>{const x=pad,y=390+i*155;text(m[0],x,y,'600 23px "Avenir 
 }else if(template==='muscles'){
 text('MUSCOLI ALLENATI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
 if(!focus.length){text('Nessun dato disponibile',pad,510,'500 27px Arial')}else{
-const chartData=focus.slice(0,6),total=focus.reduce((sum,m)=>sum+m[1],0);
-const labels=chartData.map(m=>String(m[0]).toUpperCase());
-const cx=W*.5,cy=710,r=185,n=chartData.length;
+const labelsSafe=name=>String(name).toUpperCase();
+const total=focus.reduce((sum,m)=>sum+m[1],0);
+const mainGroups=['Petto','Dorso','Spalle','Braccia','Gambe','Core'];
+const grouped={Petto:0,Dorso:0,Spalle:0,Braccia:0,Gambe:0,Core:0};
+focus.forEach(([name,count])=>{
+ const k=String(name).toLowerCase();
+ if(/petto|pettoral|chest/.test(k))grouped.Petto+=count;
+ else if(/dorso|dorsal|schiena|back/.test(k))grouped.Dorso+=count;
+ else if(/spall|shoulder/.test(k))grouped.Spalle+=count;
+ else if(/bicipit|tricipit|avambracc|braccia|arms/.test(k))grouped.Braccia+=count;
+ else if(/gamb|quadricipit|femoral|polpacc|glute|legs/.test(k))grouped.Gambe+=count;
+ else if(/core|addominal|addome|abs/.test(k))grouped.Core+=count;
+});
+const chartData=mainGroups.map(name=>[name,grouped[name]]);
 const maxValue=Math.max(1,...chartData.map(m=>m[1]));
+const cx=W*.5,cy=710,r=185,n=chartData.length;
 const point=(i,rad)=>{const a=-Math.PI/2+i*Math.PI*2/n;return{x:cx+Math.cos(a)*rad,y:cy+Math.sin(a)*rad,a}};
-if(n>=3){
- // Griglia radar essenziale: anelli poligonali sottili e assi discreti
+{
  ctx.save();ctx.lineJoin='round';
+ // Griglia radar fissa a sei assi, anche quando alcuni gruppi non sono allenati
  for(let level=1;level<=4;level++){
   ctx.beginPath();
   for(let i=0;i<n;i++){const p=point(i,r*level/4);if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y)}
   ctx.closePath();ctx.strokeStyle=level===4?'rgba(116,151,190,.34)':'rgba(116,151,190,.16)';ctx.lineWidth=level===4?2:1.3;ctx.stroke();
  }
  for(let i=0;i<n;i++){const p=point(i,r);ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(p.x,p.y);ctx.strokeStyle='rgba(116,151,190,.22)';ctx.lineWidth=1.5;ctx.stroke()}
- // Area dati: normalizzata sul gruppo più allenato nella sessione
- const values=chartData.map(m=>Math.max(.06,m[1]/maxValue));
- const pts=values.map((v,i)=>point(i,r*v));
+ const values=chartData.map(m=>m[1]/maxValue);
+ const pts=values.map((v,i)=>point(i,Math.max(5,r*v)));
  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.closePath();
  ctx.fillStyle='rgba(31,139,255,.36)';ctx.fill();
  ctx.strokeStyle='#278BFF';ctx.lineWidth=5;ctx.stroke();
- pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fillStyle='#39C8FF';ctx.fill();ctx.strokeStyle='rgba(5,14,31,.95)';ctx.lineWidth=2;ctx.stroke()});
- // Etichette esterne con allineamento adattivo
- ctx.shadowBlur=0;ctx.font='600 23px Arial';ctx.fillStyle='rgba(222,232,247,.68)';
- for(let i=0;i<n;i++){const p=point(i,r+37);ctx.textAlign=Math.cos(p.a)>.25?'left':Math.cos(p.a)<-.25?'right':'center';ctx.textBaseline=Math.sin(p.a)>.35?'top':Math.sin(p.a)<-.35?'bottom':'middle';ctx.fillText(labels[i],p.x,p.y)}
+ pts.forEach((p,i)=>{if(chartData[i][1]===0)return;ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fillStyle='#39C8FF';ctx.fill();ctx.strokeStyle='rgba(5,14,31,.95)';ctx.lineWidth=2;ctx.stroke()});
+ ctx.shadowBlur=0;ctx.font='600 22px Arial';ctx.fillStyle='rgba(222,232,247,.76)';
+ for(let i=0;i<n;i++){const p=point(i,r+32);ctx.textAlign=Math.cos(p.a)>.25?'left':Math.cos(p.a)<-.25?'right':'center';ctx.textBaseline=Math.sin(p.a)>.35?'top':Math.sin(p.a)<-.35?'bottom':'middle';ctx.fillText(labelsSafe(mainGroups[i]),p.x,p.y)}
  ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='600 18px Arial';ctx.fillText('SERIE TOTALI',cx,cy-8);ctx.fillStyle='#fff';ctx.font='800 39px Arial';ctx.fillText(String(total),cx,cy+34);
  ctx.restore();
 }
-// Legenda ordinata e compatta sotto il grafico
 text('SERIE PER GRUPPO MUSCOLARE',pad,1000,'600 19px Arial','rgba(255,255,255,.72)');
-chartData.forEach((m,i)=>{const x=pad+i%2*((W-pad*2)/2),y=1045+Math.floor(i/2)*58;ctx.beginPath();ctx.arc(x+7,y-6,5,0,Math.PI*2);ctx.fillStyle='#278BFF';ctx.fill();text(m[0].toUpperCase()+' · '+m[1]+' serie',x+22,y,'600 17px Arial','rgba(255,255,255,.9)');});
+chartData.filter(m=>m[1]>0).forEach((m)=>{const i=chartData.findIndex(x=>x[0]===m[0]);const x=pad+(i%2)*((W-pad*2)/2),y=1045+Math.floor(chartData.filter((x,j)=>x[1]>0&&j<i).length/2)*58;ctx.beginPath();ctx.arc(x+7,y-6,5,0,Math.PI*2);ctx.fillStyle='#278BFF';ctx.fill();text(m[0].toUpperCase()+' · '+m[1]+' serie',x+22,y,'600 17px Arial','rgba(255,255,255,.9)');});
 }
 }else{
 text('ESERCIZI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
