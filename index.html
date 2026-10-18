@@ -168,17 +168,30 @@ text('MUSCOLI ALLENATI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
 if(!focus.length){text('Nessun dato disponibile',pad,510,'500 27px Arial')}else{
 const chartData=focus.slice(0,5),total=focus.reduce((sum,m)=>sum+m[1],0);
 const colors=['#35D7FF','#4D83FF','#9B7BFF','#FFBD66','#FF7BAA'];
-const cx=W*.5,cy=715,r=174;let angle=-Math.PI/2;
+const cx=W*.5,cy=735,r=150;let angle=-Math.PI/2;
 const slices=chartData.map((m,i)=>{const a0=angle,a1=angle+(m[1]/total)*Math.PI*2;angle=a1;return{m,i,a0,a1,color:colors[i%colors.length]};});
-// Torta piatta, con colori traslucidi e un foro centrale per un aspetto pulito.
-slices.forEach(sl=>{ctx.beginPath();ctx.arc(cx,cy,r,sl.a0,sl.a1);ctx.arc(cx,cy,r*.62,sl.a1,sl.a0,true);ctx.closePath();ctx.fillStyle=sl.color+'B8';ctx.fill();ctx.lineWidth=2.5;ctx.strokeStyle='rgba(255,255,255,.72)';ctx.stroke();});
-// Foro centrale trasparente: lascia vedere la foto di sfondo.
-ctx.beginPath();ctx.arc(cx,cy,r*.56,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1.5;ctx.stroke();
-ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,.78)';ctx.font='600 19px Arial';ctx.fillText('SERIE TOTALI',cx,cy-9);ctx.fillStyle='#fff';ctx.font='800 43px Arial';ctx.fillText(String(total),cx,cy+39);
-// Legenda essenziale in due colonne
-const legendY=1000,cols=2,colW=(W-pad*2)/2,rowH=72;
-chartData.forEach((m,i)=>{const col=i%cols,row=Math.floor(i/cols),x=pad+col*colW,y=legendY+row*rowH;ctx.beginPath();ctx.arc(x+9,y-7,7,0,Math.PI*2);ctx.fillStyle=colors[i%colors.length]+'D9';ctx.fill();text(m[0].toUpperCase(),x+25,y,'700 19px Arial');text(m[1]+' serie · '+Math.round(m[1]/total*100)+'%',x+25,y+27,'500 17px Arial','rgba(255,255,255,.84)');});
-text('DISTRIBUZIONE DEL LAVORO',pad,1230,'600 19px Arial','rgba(255,255,255,.78)');
+// Ciambella piatta e semitrasparente
+slices.forEach(sl=>{ctx.beginPath();ctx.arc(cx,cy,r,sl.a0,sl.a1);ctx.arc(cx,cy,r*.61,sl.a1,sl.a0,true);ctx.closePath();ctx.fillStyle=sl.color+'B8';ctx.fill();ctx.lineWidth=2.5;ctx.strokeStyle='rgba(255,255,255,.72)';ctx.stroke();});
+// Centro della ciambella
+ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,.78)';ctx.font='600 17px Arial';ctx.fillText('SERIE TOTALI',cx,cy-7);ctx.fillStyle='#fff';ctx.font='800 38px Arial';ctx.fillText(String(total),cx,cy+34);
+// Etichette vicino al segmento corrispondente, appena fuori dal bordo
+slices.forEach(sl=>{
+ const mid=(sl.a0+sl.a1)/2;
+ const sx=cx+Math.cos(mid)*(r+2),sy=cy+Math.sin(mid)*(r+2);
+ const ex=cx+Math.cos(mid)*(r+26),ey=cy+Math.sin(mid)*(r+26);
+ const right=Math.cos(mid)>=0;
+ ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=1.5;ctx.stroke();
+ ctx.beginPath();ctx.arc(sx,sy,3,0,Math.PI*2);ctx.fillStyle=sl.color;ctx.fill();
+ ctx.textAlign=right?'left':'right';ctx.textBaseline='middle';ctx.font='700 17px Arial';ctx.fillStyle='#fff';ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=5;
+ const label=String(sl.m[0]).toUpperCase();
+ const maxWidth=W*.30;
+ let shown=label;while(ctx.measureText(shown).width>maxWidth&&shown.length>5)shown=shown.slice(0,-2)+'…';
+ ctx.fillText(shown,ex+(right?7:-7),ey);
+ ctx.shadowBlur=0;ctx.textBaseline='alphabetic';
+});
+// Dettaglio sotto il grafico
+text('SERIE PER GRUPPO MUSCOLARE',pad,1000,'600 19px Arial','rgba(255,255,255,.78)');
+chartData.forEach((m,i)=>{const x=pad+i%2*((W-pad*2)/2),y=1045+Math.floor(i/2)*58;ctx.beginPath();ctx.arc(x+7,y-6,6,0,Math.PI*2);ctx.fillStyle=colors[i%colors.length]+'D9';ctx.fill();text(m[0].toUpperCase()+' · '+m[1]+' serie',x+22,y,'600 17px Arial','rgba(255,255,255,.9)');});
 }
 }else{
 text('ESERCIZI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
