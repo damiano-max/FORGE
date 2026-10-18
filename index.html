@@ -167,24 +167,18 @@ metrics.forEach((m,i)=>{const x=pad,y=390+i*155;text(m[0],x,y,'600 23px "Avenir 
 text('MUSCOLI ALLENATI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
 if(!focus.length){text('Nessun dato disponibile',pad,510,'500 27px Arial')}else{
 const chartData=focus.slice(0,5),total=focus.reduce((sum,m)=>sum+m[1],0);
-const colors=['#23D5FF','#397BFF','#9167FF','#FFB454','#FF6E9C'];
-const cx=W*.5,cy=710,rx=245,ry=185,depth=48;
-let angle=-Math.PI/2;
+const colors=['#35D7FF','#4D83FF','#9B7BFF','#FFBD66','#FF7BAA'];
+const cx=W*.5,cy=715,r=174;let angle=-Math.PI/2;
 const slices=chartData.map((m,i)=>{const a0=angle,a1=angle+(m[1]/total)*Math.PI*2;angle=a1;return{m,i,a0,a1,color:colors[i%colors.length]};});
-function piePath(sl,yOffset=0){ctx.beginPath();ctx.moveTo(cx,cy+yOffset);ctx.lineTo(cx+rx*Math.cos(sl.a0),cy+yOffset+ry*Math.sin(sl.a0));ctx.ellipse(cx,cy+yOffset,rx,ry,0,sl.a0,sl.a1,false);ctx.closePath();}
-function shadeColor(hex,amount){const n=parseInt(hex.slice(1),16);return '#'+[16,8,0].map(sh=>Math.max(0,Math.min(255,((n>>sh)&255)-amount)).toString(16).padStart(2,'0')).join('');}
-// Ombra morbida sotto la torta
-ctx.save();ctx.shadowColor='rgba(0,0,0,.38)';ctx.shadowBlur=28;ctx.shadowOffsetY=18;ctx.beginPath();ctx.ellipse(cx,cy+depth+8,rx*.98,ry*.98,0,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,.3)';ctx.fill();ctx.restore();
-// Spessore 3D, disegnato a strati
-for(let dy=depth;dy>=2;dy-=2){slices.forEach(sl=>{piePath(sl,dy);ctx.fillStyle=shadeColor(sl.color,72);ctx.fill();});}
-// Superficie superiore, con contorni fini
-slices.forEach(sl=>{piePath(sl);ctx.fillStyle=sl.color;ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='rgba(255,255,255,.88)';ctx.stroke();});
-// Etichette percentuali esterne, con connettori
-slices.forEach(sl=>{const mid=(sl.a0+sl.a1)/2,px=cx+Math.cos(mid)*rx*.77,py=cy+Math.sin(mid)*ry*.77;let lx=cx+Math.cos(mid)*(rx+45),ly=cy+Math.sin(mid)*(ry+42);lx=Math.max(pad+55,Math.min(W-pad-55,lx));ly=Math.max(485,Math.min(920,ly));const right=Math.cos(mid)>=0;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(lx,ly);ctx.lineTo(lx+(right?38:-38),ly);ctx.strokeStyle='rgba(255,255,255,.68)';ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.textAlign='center';ctx.font='800 31px Arial';ctx.fillStyle='#fff';ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=8;ctx.fillText(Math.round(sl.m[1]/total*100)+'%',lx,ly-14);ctx.shadowBlur=0;});
-// Legenda compatta a due colonne, ben separata dal grafico
-const legendY=1015,cols=2,colW=(W-pad*2)/2,rowH=68;
-chartData.forEach((m,i)=>{const col=i%cols,row=Math.floor(i/cols),x=pad+col*colW,y=legendY+row*rowH;ctx.beginPath();ctx.roundRect(x,y-20,12,36,6);ctx.fillStyle=colors[i%colors.length];ctx.fill();text(m[0].toUpperCase(),x+24,y,'700 20px Arial');text(m[1]+' serie',x+24,y+27,'500 18px Arial','rgba(255,255,255,.82)');});
-text('TOTALE SERIE',pad,1240,'600 19px Arial','rgba(255,255,255,.78)');text(total,pad+170,1240,'700 30px Arial');
+// Torta piatta, con colori traslucidi e un foro centrale per un aspetto pulito.
+slices.forEach(sl=>{ctx.beginPath();ctx.arc(cx,cy,r,sl.a0,sl.a1);ctx.arc(cx,cy,r*.62,sl.a1,sl.a0,true);ctx.closePath();ctx.fillStyle=sl.color+'B8';ctx.fill();ctx.lineWidth=2.5;ctx.strokeStyle='rgba(255,255,255,.72)';ctx.stroke();});
+// Foro centrale trasparente: lascia vedere la foto di sfondo.
+ctx.beginPath();ctx.arc(cx,cy,r*.56,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1.5;ctx.stroke();
+ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,.78)';ctx.font='600 19px Arial';ctx.fillText('SERIE TOTALI',cx,cy-9);ctx.fillStyle='#fff';ctx.font='800 43px Arial';ctx.fillText(String(total),cx,cy+39);
+// Legenda essenziale in due colonne
+const legendY=1000,cols=2,colW=(W-pad*2)/2,rowH=72;
+chartData.forEach((m,i)=>{const col=i%cols,row=Math.floor(i/cols),x=pad+col*colW,y=legendY+row*rowH;ctx.beginPath();ctx.arc(x+9,y-7,7,0,Math.PI*2);ctx.fillStyle=colors[i%colors.length]+'D9';ctx.fill();text(m[0].toUpperCase(),x+25,y,'700 19px Arial');text(m[1]+' serie · '+Math.round(m[1]/total*100)+'%',x+25,y+27,'500 17px Arial','rgba(255,255,255,.84)');});
+text('DISTRIBUZIONE DEL LAVORO',pad,1230,'600 19px Arial','rgba(255,255,255,.78)');
 }
 }else{
 text('ESERCIZI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
