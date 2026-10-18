@@ -166,13 +166,19 @@ metrics.forEach((m,i)=>{const x=pad,y=390+i*155;text(m[0],x,y,'600 23px "Avenir 
 }else if(template==='muscles'){
 text('MUSCOLI ALLENATI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
 if(!focus.length){text('Nessun dato disponibile',pad,510,'500 27px Arial')}else{
-const chartData=focus.slice(0,5),total=chartData.reduce((sum,m)=>sum+m[1],0);
-const colors=['#20D9FF','#3478F6','#8B5CF6','#FFB84D','#FF6482'];
-const cx=W*.34,cy=760,r=220;let angle=-Math.PI/2;
-chartData.forEach((m,i)=>{const next=angle+(m[1]/total)*Math.PI*2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,next);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.lineWidth=5;ctx.strokeStyle='rgba(255,255,255,.92)';ctx.stroke();angle=next;});
-const legendX=W*.61,legendY=585,lineH=112;
-chartData.forEach((m,i)=>{const y=legendY+i*lineH;ctx.beginPath();ctx.arc(legendX,y-10,9,0,Math.PI*2);ctx.fillStyle=colors[i%colors.length];ctx.fill();text(m[0].toUpperCase(),legendX+22,y,'700 22px Arial');text(m[1]+' serie · '+Math.round(m[1]/total*100)+'%',legendX+22,y+34,'500 20px Arial','rgba(255,255,255,.82)');});
-text('SERIE TOTALI',pad,1090,'600 21px Arial','rgba(255,255,255,.78)');text(total,pad,1150,'700 48px Arial');
+const chartData=focus.slice(0,5),total=focus.reduce((sum,m)=>sum+m[1],0);
+const colors=['#FF35D0','#20D9FF','#557BFF','#8B5CF6','#A3FF72'];
+const darken=hex=>{const n=parseInt(hex.slice(1),16);return '#'+[0,8,16].map(sh=>Math.max(0,((n>>sh)&255)-68).toString(16).padStart(2,'0')).join('')};
+const cx=W*.5,cy=745,r=250,depth=62;let angle=-Math.PI/2;
+const slices=chartData.map((m,i)=>{const a0=angle,a1=angle+(m[1]/total)*Math.PI*2;angle=a1;return{m,i,a0,a1,color:colors[i%colors.length]};});
+// Profondità 3D: lati scuri sotto la superficie superiore
+for(let dy=depth;dy>=1;dy-=2){slices.forEach(sl=>{ctx.beginPath();ctx.moveTo(cx,cy+dy);ctx.arc(cx,cy+dy,r,sl.a0,sl.a1);ctx.closePath();ctx.fillStyle=darken(sl.color);ctx.fill();});}
+slices.forEach(sl=>{ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,sl.a0,sl.a1);ctx.closePath();ctx.fillStyle=sl.color;ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='rgba(255,255,255,.72)';ctx.stroke();});
+// Piccolo punto luce e linee sottili danno un look più rifinito
+ctx.beginPath();ctx.ellipse(cx,cy,r*.46,r*.12,0,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,.10)';ctx.lineWidth=2;ctx.stroke();
+const legendY=1010,cols=2,colW=(W-pad*2)/2,rowH=78;
+chartData.forEach((m,i)=>{const col=i%cols,row=Math.floor(i/cols),x=pad+col*colW,y=legendY+row*rowH;ctx.beginPath();ctx.arc(x+10,y-8,9,0,Math.PI*2);ctx.fillStyle=colors[i%colors.length];ctx.fill();text(m[0].toUpperCase(),x+30,y,'700 22px Arial');text(m[1]+' serie  ·  '+Math.round(m[1]/total*100)+'%',x+30,y+30,'500 19px Arial','rgba(255,255,255,.82)');});
+text('SERIE TOTALI',pad,1255,'600 20px Arial','rgba(255,255,255,.78)');text(total,pad+190,1255,'700 32px Arial');
 }
 }else{
 text('ESERCIZI',pad,430,'600 25px Arial','rgba(255,255,255,.86)');
